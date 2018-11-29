@@ -3,145 +3,154 @@
 <head>
 	<meta charset="UTF-8">
 	<title>hammer.js使用测试</title>
-	<link href="css/css.css" type="text/css" rel="stylesheet" />
 	<style>
 		html,body{
 			margin:0;
-			padding: 0;
-			width: 100px;
-			height: 100px;
+			padding:0;
+			width:100px;
+			height:100px;
 			background-color: #ddd;
 		}
 		#puzzle{
 			position: absolute;
 			top: 40%;
-			left: 20%;
-			width: 340px;
+			left: 30%;
+			width:340px;
 			height: 260px;
 		}
 		#puzzle .container{
-			float: left;
-			width: 107px;
-			height: 80px;
+			float:left;
+			width:107px;
+			height:80px;
 		}
-		#puzzle .container{
+		#puzzle .container i{
 			display: block;
-			margin: 4px;
+			margin:4px;
 			width: 99px;
 			height: 72px;
 			background-color: #fff;
 		}
 		#video{
+			/*display: none;*/
 			opacity: 0;
+			position: absolute;
+			top: 0;
+			left:0;
 		}
 		canvas{
-			/*background-color: cyan;*/
-			width: 99px;
-			height: 72px;
+			position: absolute;
+			z-index: 4;
+		}
+		.ks{
+			margin: 600px 0 0 600px;
 		}
 	</style>
 </head>
-<!-- <canvas id="cas"></canvas> -->
-<div id="puzzle">
-	<div class="container"></div>
-	<div class="container"></div>
-	<div class="container"></div>
-	<div class="container"></div>
-	<div class="container"></div>
-	<div class="container"></div>
-	<div class="container"></div>
-	<div class="container"></div>
-	<div class="container"></div>
-</div>
-	<video width="320" height="240" id="video" autoplay="autoplay" loop>
-		<source src="video/movie.mp4" type="video/mp4" media="">
+<body>
+	<canvas id="cas" width="320" height="240"></canvas>
+	<div id="puzzle">
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+		<div class="container"><i></i></div>
+	</div>
+	<input type="button" class="ks" value="开始游戏">
+	<video muted width="320" height="240" id="video" autoplay="autoplay"  style="position: relative;left: 300px;top: 300px;" loop preload="">
+		<source src="video/movie.mp4" type="video/mp4">
 	</video>
 </body>
 </html>
 <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/hammer.js/2.0.8/hammer.js"></script>
+<script src="https://cdn.bootcss.com/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="js/jquery.hammer.js"></script>
 <script>
-	var box = document.querySelector("#puzzle");
-	var boxTop = box.offsetTop;
-	var boxLeft = box.offsetLeft;
-	var boxRight = box.offsetLeft + box.offsetWidth;
-	var boxBottom = box.offsetTop + box.offsetHeight;
-	var arrLis = document.querySelectorAll("#puzzle .container");
-	//var arrOk=[]; //用来保存正确的序号
-	var ctx = [];
-	function Ballon(num) {
+	$(".ks").on("click",function(){
+		setTimeout(function(){
+			var dataindex = [];
+			// 创建数组保存随机的视频拼图模块
+			var ctx = [];
+			// var zz = [];	
+			for(var i = 0; i < 9; i++){
+				var cass = document.createElement("canvas");
+				var	contexts = cass.getContext("2d");
+				cass.className = "cass";
+				cass.setAttribute("width","107px");
+				cass.setAttribute("height","80px");
+				cass.style.left = (Math.random() * window.screen.width/2)+"px";
+				cass.style.top = (Math.random() * window.screen.height/2)+"px";
+				cass.style.transform = "rotate("+ Math.random() * 20 + "deg)";
+				window.document.body.appendChild(cass);
+				// 创建数组
+				dataindex[i]=i;
+				ctx[i] = contexts;
+				$(".container").eq(i).attr("data-index",i);
+				$(".cass").eq(i).attr("data-index",i);
+				// console.log(contexts);
+			}
+			var cas = document.getElementsByClassName('cass');
+			var hammer = $(".cass").hammer();
+			console.log(hammer[1]);
 
-		this.randomNum = num+1;
-		//屏幕的宽度和高度
-		this.maxWidth = document.documentElement.clientWidth || document.body.clientWidth;
-		this.maxHeight = document.documentElement.clientHeight || document.body.clientHeight;
-		//气球的X轴的位置，Y轴的位置
-		this.posX = randomNumber(0, this.maxWidth-150);
-		this.posY = randomNumber(0, this.maxHeight-150);
-		
-		//1、添加初始化事件，appendChild到屏幕上
-		this.initialize();
-		//3、添加加事件绑定，响应点击，以及没被点击后的操作
-		this.addEvent();
-		
-	}
-	Ballon.prototype.initialize = function(){
-		//创建DOM
-		this.dom = document.createElement("canvas");
-		this.dom.className = "ballon";
-		this.dom.setAttribute("data-top", "0");
-		this.dom.setAttribute("data-left", "0");
-		// this.dom.setAttribute("data-index",a);
-		this.dom.style.position = "absolute";
-		var suijiX = Math.floor(Math.random()*1000);
-		var suijiY = Math.floor(Math.random()*700);
-		this.dom.style.left = suijiX + "px";
-		this.dom.style.top = suijiY + "px";
-		this.dom.width = 107;
-		this.dom.height = 80;
-		this.dom.style.height ="80";
-		var video = document.getElementById('video');
-		window.document.body.append(this.dom);
-		var context = this.dom.getContext("2d");
-		ctx.push(context);
+			//鼠标拖动视频拼图模块
 
-		document.body.appendChild( this.dom );
-	}
-	function drawVideo(){
-		for( var i=0; i<9; i++){
-			//每个九宫格的索引值和坐标位置的转换关系
-			var row = Math.floor (i / 3) //取余数获取行数
-			var col =  Math.floor( i %3) //取模获得列数
-			ctx[i].drawImage(video, (col*107), (row*80), 107,80, 0, 0, 107, 80);
-    	}
-	}
-	setInterval(function(){	drawVideo(); },50)
-	function randomNumber(min, max){
-		return Math.floor( Math.random()*(max-min) + min);
-	}
+			hammer.on("panstart",function(ev){
+				$(this).attr("data-left",$(this).offset().left);
+				$(this).attr("data-top",$(this).offset().top);
+				$(this).data("position",$(this).offset());
+			})
+			hammer.on("panmove",function(ev){
+				console.log("拖动中");
+				var top = $(this).data("position").top;
+				var left = $(this).data("position").left;
+				$(this).css({
+					"top": top + ev.gesture.deltaY,
+					"left": left + ev.gesture.deltaX
+				})
+			})
+			hammer.on("panend",function(ev){
+				// console.log($(this).attr("data-index"));
+				// console.log($("#puzzle div").eq($(this).attr("data-index")));
+				var centerX = $(this).data("position").left + ev.gesture.deltaX + $(this).width()/2;
+				var centerY = $(this).data("position").top + ev.gesture.deltaY + $(this).height()/2;
+				// console.log(centerX);
+				var thats = this;
+				// console.log($(".container").eq(j));
 
-	Ballon.prototype.addEvent = function(){
-		var that = this;
-		this.dom.onmousedown = function(){
-			 document.onmousemove=function (evt) {
-	            var event=evt||window.event;
-	            that.dom.style.left=event.clientX-that.dom.offsetWidth/2+"px";
-	            that.dom.style.top=event.clientY-that.dom.offsetHeight/2+"px";          
-	        }
-	     	document.onmouseup=function (evt) {
-	        	var event=evt||window.event;
-	    		var picPosX = event.clientX;
-	    		var picPosY = event.clientY;       	
-	         	document.onmousemove=null;
-	         	
-	    	}
-		}
-	}
+				// 获取九宫格的中心点坐标
+				var newleft = $(".container").eq($(this).data("index")).prevObject[$(this).data("index")].offsetLeft;
+				var newtop = $(".container").eq($(this).data("index")).prevObject[$(this).data("index")].offsetTop;
+				var boxleft = $("#puzzle").offset().left;
+				var boxtop = $("#puzzle").offset().top;
 
-	var ballArr=[]; 
-	for (var i = 0; i < 9; i++) {
-		ballArr.push(new Ballon(i));
-	}
+
+				// 根据 data("index")属性找到对应序号的九宫格
+				if(centerX > (newleft + boxleft)  && centerX < (newleft+$(".container").eq($(this).data("index")).prevObject[$(this).data("index")].clientWidth+boxleft) &&  centerY > newtop + boxtop && centerY < (newtop + boxtop + $(".container").eq($(this).data("index")).prevObject[$(this).data("index")].clientHeight)){
+					// console.log("移动到container里面了");
+					// if($(".container").eq($(this).data("index")).data("index") === $(this).data("index")){
+						$(this).removeAttr("style");
+						$(".container i").eq($(this).data("index")).prepend($(this));
+						console.log($("#puzzle div").find("canvas").length);
+
+						//判断九个碎片是否都移动到正确位置了,提示游戏完成
+						
+				}	
+			})
+
+			//通过for循环将video的画面随机分块绘制到canvas上
+			setInterval(function(){
+				for(var i = 0;i < 9;i++){
+					//每个九宫格的索引值和坐标位置的转换关系
+					var row = Math.floor(dataindex[i]/3)//取余数获取行数
+					var col = Math.floor(dataindex[i]%3)//取模获得列数
+					ctx[i].drawImage(video,(col*107),(row*80),107,80,0,0,107,80);
+				}
+			},50)
+		})
+	})
 	
 </script>

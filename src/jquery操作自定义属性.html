@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		.box{
+			width: 100px;
+			height: 100px;
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			background-color: red;
+		}
+		.parent{
+			border: 1px solid #000;
+			width: 105px;
+			height: 105px;
+			position: absolute;
+			left: 140px;
+			top: 200px;
+		}
+	</style>
+</head>
+<body>
+	<div class="box" data-top="" data-left="">
+		
+	</div>
+	<div class="parent" id="parent"> </div>
+</body>
+</html>
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/hammer.js/2.0.8/hammer.js"></script>
+<script src="js/jquery.hammer.js"></script>
+<script>
+	var box = document.getElementsByTagName('div')[0];
+	var parent = document.getElementById('parent');
+	var hammer = $("div.box").hammer();
+	hammer.on("panstart",function(ev){
+		//jquery的offset() 获取当前对象的偏移量
+		//offset() 获取当前对象相对于文档的偏移
+		console.log($(this).offset());
+		$(this).attr("data-top",$(this).offset().top);
+		$(this).attr("data-left",$(this).offset().left);
+		// $(this).attr("top",$(this).offset().top);
+		// $(this).attr("left",$(this).offset().left);
+		$(this).data("position",$(this).offset());
+		});
+	hammer.on("panmove",function(ev){
+		//移动距离ev.gesture.deltaX 和 ev.gesture.deltaY
+		var top = $(this).data("position").top;
+		var left = $(this).data("position").left;
+		console.log(ev);
+		$(this).css({
+			"top": top+ ev.gesture.deltaY,
+			"left": left + ev.gesture.deltaX,
+		})
+	});
+	hammer.on("panend",function(ev){
+		var top = $(this).data("position").top;
+		var left = $(this).data("position").left;
+		var parentleft = $('#parent').offset().left;
+		var parentleft1 = $('#parent').offset().left +105;
+		var parenttop = $('#parent').offset().top;
+		var parenttop1 = $('#parent').offset().top +105;
+		console.log(parentleft);
+		console.log(parentleft1);
+		console.log(parenttop);
+		console.log(parenttop1);
+		//获取移动元素的中心点坐标
+		//var centerX = 绝对定位坐标x + (移动距离) + 宽度的一半
+		//var centerY = 绝对定位坐标y + (移动距离) + 高度的一半
+		var centerX = (top+ev.gesture.deltaY) + 50;
+		var centerY = (left+ev.gesture.deltaY) + 50;
+		console.log(centerX);
+		console.log(centerY);
+		// if(centerX>parent 的左边而且小于 parent的右边而且 centerY > parent 的上边 而且 小于 parent的下边){
+		// 		console.log("移动到parent里面了");
+		// }
+		if (centerX>parentleft && centerX< parentleft1  && centerY > parenttop && centerY < parenttop1) {
+			console.log("移动到parent里面了");
+		};
+	});
+</script>
